@@ -1,0 +1,7 @@
+begin
+  a := 1;
+  begin
+    b := a + 1;
+    if b > 0 then
+      c := b
+

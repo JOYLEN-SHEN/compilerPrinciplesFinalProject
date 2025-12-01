@@ -1,0 +1,15 @@
+begin
+  x := 10;
+  y := x - 3 + 5;
+  if y > 10 then
+    begin
+      z := y + 1;
+      t := z - 2
+    end;
+  begin
+    a := 1;
+    b := a + y
+  end
+end
+
+
