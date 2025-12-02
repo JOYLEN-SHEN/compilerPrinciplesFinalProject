@@ -8,6 +8,10 @@
 #include <vector>
 #include <string>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 // 外部接口声明（由同学在对应模块实现）
 std::vector<Token> runLexer(const std::string &source, std::vector<std::string> &errors);
 SyntaxNode* runParser(const std::vector<Token> &tokens, std::vector<std::string> &errors);
@@ -15,6 +19,12 @@ std::vector<ThreeAddrCode> runCodeGen(SyntaxNode *root);
 void printIR(const std::vector<ThreeAddrCode> &ir, std::ostream &os);
 
 int main(int argc, char *argv[]) {
+    #ifdef _WIN32
+    // 将控制台输入 / 输出编码切换为 UTF-8，避免中文乱码
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+#endif
+
     if (argc < 4) {
         std::cerr << "用法：exam_compiler <lex_rules> <syn_rules> <source_file>\n";
         return 1;

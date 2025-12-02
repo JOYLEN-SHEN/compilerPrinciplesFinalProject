@@ -25,10 +25,13 @@ struct SyntaxNode {
     SyntaxNode(NodeType t, const Token &tok) : type(t), token(tok) {}
 };
 
-// TODO: 递归释放整棵语法树
+// Done: 递归释放整棵语法树
 inline void freeSyntaxTree(SyntaxNode *node) {
-    // TODO: 遍历 children 并 delete
-    (void)node;
+    if (!node) return;
+    for (auto *ch : node->children) {
+        freeSyntaxTree(ch);
+    }
+    delete node;
 }
 
 
