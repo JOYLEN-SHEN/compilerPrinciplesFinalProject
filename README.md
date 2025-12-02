@@ -1,7 +1,7 @@
 ### 一、目录结构
 
 ```text
-exam/
+compilerPrinciplesFinalProject/
   ├── src/
   │   ├── Common.h
   │   ├── Config.h
@@ -49,8 +49,8 @@ exam/
     - `bool loadLexRules(const std::string&, LexRuleConfig&, std::vector<std::string>&);`
     - `bool loadSynRules(const std::string&, SynRuleConfig&, std::vector<std::string>&);`
 - 练习任务：
-  - 实现从 `exam/test/pl0_lex_rules.txt` 读取关键字；
-  - 实现从 `exam/test/pl0_syn_rules.txt` 读取文法产生式文本；
+  - 实现从 `test/pl0_lex_rules.txt` 读取关键字；
+  - 实现从 `test/pl0_syn_rules.txt` 读取文法产生式文本；
   - 对错误格式给出合理的错误消息。
 
 #### 3. `src/lex/Token.h`
@@ -87,7 +87,7 @@ exam/
 - **作用**：实现 LL(1) 风格的递归下降 **语法分析器**。
 - 已保留接口：
   - `SyntaxNode* runParser(const std::vector<Token> &tokens, std::vector<std::string> &errors);`
-- 推荐语法规则（已在 `exam/test/pl0_syn_rules.txt` 中体现）：
+- 推荐语法规则（已在 `test/pl0_syn_rules.txt` 中体现）：
   - `<program>   -> <stmt_list>`
   - `<stmt_list> -> <stmt> { ; <stmt> } [;]`
   - `<stmt>      -> <assign> | <if> | <block>`
@@ -134,7 +134,7 @@ exam/
 
 ### 三、测试用例与运行方式
 
-`exam/test/` 目录中已复制了完整项目的测试用例与说明（见其中 `README.md`）：
+`test/` 目录中已复制了完整项目的测试用例与说明（见其中 `README.md`）：
 
 - **词法正确 + 语法正确**：
   - `test_ok.txt`：最简单的 `begin ... if ... end` 程序，期望生成合理的三地址码。
@@ -149,13 +149,13 @@ exam/
 由于我使用的是vscode + mingw G++编译器，在终端使用以下命令测试。
 
 ```bash
-g++ exam/src/Config.cpp exam/src/lex/Lexer.cpp exam/src/syn/Parser.cpp exam/src/ir/CodeGen.cpp exam/src/Main.cpp -o exam_compiler.exe
+g++ src/Config.cpp src/lex/Lexer.cpp src/syn/Parser.cpp src/ir/CodeGen.cpp src/Main.cpp -o compiler.exe
 ```
 
 运行exe并测试不同的终端：
 
 ```bash
-./exam_compiler.exe exam/test/pl0_lex_rules.txt exam/test/pl0_syn_rules.txt exam/test/test_ok.txt
+./compiler.exe test/pl0_lex_rules.txt test/pl0_syn_rules.txt test/test_ok.txt
 ```
 
 - 对合法程序，终端应提示“生成三地址码到 ir.txt 完成”，并在当前目录生成 `ir.txt`；
@@ -182,5 +182,5 @@ g++ exam/src/Config.cpp exam/src/lex/Lexer.cpp exam/src/syn/Parser.cpp exam/src/
 
 - **成员 C：中间代码生成与集成测试**
   - 负责：`ir/ThreeAddr.h`、`ir/CodeGen.cpp` 以及 `Main.cpp` 中主流程（调用顺序、错误处理与 `ir.txt` 输出）。
-  - 工作重点：基于语法树生成三地址码（赋值、表达式、关系运算与 `if` 控制流），设计 IR 输出格式，并组织使用 `exam/test` 下所有用例进行集成测试和结果记录。
+  - 工作重点：基于语法树生成三地址码（赋值、表达式、关系运算与 `if` 控制流），设计 IR 输出格式，并组织使用 `test` 下所有用例进行集成测试和结果记录。
 
