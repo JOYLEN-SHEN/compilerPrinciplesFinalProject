@@ -1,0 +1,8 @@
+const a = 1;
+var x, y;
+begin
+  x := a + 2;
+  if x < 10 then y := x
+end.
+
+

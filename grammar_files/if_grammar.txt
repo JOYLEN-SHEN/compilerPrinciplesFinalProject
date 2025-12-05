@@ -1,0 +1,11 @@
+%Start Stmt
+
+Stmt -> "if" Cond "then" Stmt | "id" ":=" Expr
+Cond -> "id" RelOp "id"
+RelOp -> "<" | ">" | "="
+Expr -> Term ExprTail
+ExprTail -> "+" Term ExprTail | epsilon
+Term -> Factor
+Factor -> "id" | "num"
+
+

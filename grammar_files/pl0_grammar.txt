@@ -1,0 +1,32 @@
+%Start program
+
+program   -> block "."
+
+block     -> constDecl varDecl "begin" statementList "end"
+
+constDecl -> "const" constItem constMore ";" | epsilon
+constMore -> "," constItem constMore | epsilon
+constItem -> id "=" num
+
+varDecl   -> "var" id varMore ";" | epsilon
+varMore   -> "," id varMore | epsilon
+
+statementList -> statement statementMore
+statementMore -> ";" statement statementMore | epsilon
+
+statement -> id ":=" expression | "begin" statementList "end" | "if" condition "then" statement | "while" condition "do" statement
+
+condition -> "odd" expression | expression relop expression
+
+relop     -> "=" | "#" | "<" | "<=" | ">" | ">="
+
+expression -> signOpt term exprTail
+signOpt    -> "+" | "-" | epsilon
+exprTail   -> addOp term exprTail | epsilon
+addOp      -> "+" | "-"
+
+term       -> factor termTail
+termTail   -> mulOp factor termTail | epsilon
+mulOp      -> "*" | "/"
+
+factor     -> id | num | "(" expression ")"
