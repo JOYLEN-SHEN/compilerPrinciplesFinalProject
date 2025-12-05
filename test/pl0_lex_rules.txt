@@ -1,9 +1,0 @@
-// 简化 PL/0 词法规则示例
-// 约定：以 “keyword <lexeme>” 形式声明关键字
-
-keyword if
-keyword then
-keyword begin
-keyword end
-
-

@@ -1,7 +1,0 @@
-begin
-  a := 1 + 2;
-  if a > 0 then
-    b := a;
-end
-
-
