@@ -1,69 +1,224 @@
-#include "lexer.h"
-
+﻿#include "lexer.h"
 #include <cctype>
 #include <sstream>
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
 
 // ============================================
-// TODO: 成员1 实现以下函数
+// 成员1 实现以下函数
 // ============================================
 
-void Lexer::configureFromTerminals(const std::set<std::string> &terminals) {
-    // TODO: 根据终结符集合配置词法分析器
-    // 要求：
-    // 1. 遍历终结符集合
-    // 2. 如果终结符是 "id"，设置 hasIdToken = true
-    // 3. 如果终结符是 "num"，设置 hasNumToken = true
-    // 4. 如果终结符是纯字母（如 "if", "while"），加入 keywordTokens
-    // 5. 其他终结符（如 "+", "(", ":="）加入 symbolTokens
+void Lexer::configureFromTerminals(const set<string>& terminals) {
+    // 清空现有配置
+    keywordTokens.clear();
+    symbolTokens.clear();
+    hasIdToken = false;
+    hasNumToken = false;
+
+    // 遍历终结符集合
+    for (const auto& term : terminals) {
+        // 检查是否为特殊符号
+        if (term == "id") {
+            hasIdToken = true;
+        }
+        else if (term == "num") {
+            hasNumToken = true;
+        }
+        // 检查是否为纯字母（关键字）
+        else if (all_of(term.begin(), term.end(), [](char c) {
+            return isalpha(c);
+            })) {
+            // 纯字母，视为关键字
+            keywordTokens.insert(term);
+        }
+        else {
+            // 其他符号（运算符、分隔符等）
+            symbolTokens.insert(term);
+        }
+    }
+
+    // 输出调试信息（可选）
+    /*
+    cout << "词法分析器配置完成：" << endl;
+    cout << "  关键字: ";
+    for (const auto& kw : keywordTokens) cout << kw << " ";
+    cout << endl << "  符号: ";
+    for (const auto& sym : symbolTokens) cout << sym << " ";
+    cout << endl << "  标识符识别: " << (hasIdToken ? "启用" : "禁用") << endl;
+    cout << "  数字识别: " << (hasNumToken ? "启用" : "禁用") << endl;
+    */
 }
 
 Lexer Lexer::createPL0Lexer() {
-    // TODO: 创建 PL/0 词法分析器
-    // 要求：
-    // 1. 设置关键字：const, var, begin, end, if, then, while, do, odd
-    // 2. 设置运算符/分隔符：:=, <=, >=, #, +, -, *, /, (, ), =, <, >, ,, ., ;
-    // 3. 启用 id 和 num 识别
-    // 4. 返回配置好的 Lexer 对象
     Lexer lx;
-    // TODO: 实现配置
+
+    // 设置PL/0关键字
+    set<string> pl0Keywords = {
+        "const", "var", "begin", "end", "if", "then",
+        "while", "do", "odd", "procedure", "call", "return"
+    };
+
+    // 设置PL/0运算符和分隔符
+    set<string> pl0Symbols = {
+        ":=", "+", "-", "*", "/",
+        "=", "#", "<", "<=", ">", ">=",
+        "(", ")", ",", ".", ";"
+    };
+
+    // 合并配置
+    set<string> terminals;
+    terminals.insert(pl0Keywords.begin(), pl0Keywords.end());
+    terminals.insert(pl0Symbols.begin(), pl0Symbols.end());
+    terminals.insert("id");
+    terminals.insert("num");
+
+    // 配置词法分析器
+    lx.configureFromTerminals(terminals);
+
     return lx;
 }
 
 bool Lexer::isIdentifierStart(char c) const {
-    // TODO: 判断字符是否可以作为标识符开头
-    // 要求：字母或下划线返回 true
-    return false; // 占位
+    // 标识符开头：字母或下划线
+    return isalpha(c) || c == '_';
 }
 
 bool Lexer::isIdentifierChar(char c) const {
-    // TODO: 判断字符是否可以作为标识符的一部分
-    // 要求：字母、数字或下划线返回 true
-    return false; // 占位
+    // 标识符字符：字母、数字或下划线
+    return isalnum(c) || c == '_';
 }
 
-bool Lexer::tokenize(const std::string &source,
-                     std::vector<Token> &outTokens,
-                     std::string &errorMsg) {
-    // TODO: 实现词法分析主函数
-    // 算法：
-    // 1. 初始化：行号=1，列号=1，清空输出 token 列表
-    // 2. 遍历源程序字符串：
-    //    - 跳过空白字符（更新行号/列号）
-    //    - 识别标识符/关键字：
-    //      * 如果以字母/下划线开头，读取完整标识符
-    //      * 检查是否为关键字，是则 type=关键字，否则 type="id"
-    //    - 识别数字：
-    //      * 如果以数字开头，读取完整数字序列
-    //      * type="num"
-    //    - 识别运算符/分隔符：
-    //      * 尝试匹配 symbolTokens 中最长的符号（最长匹配）
-    //      * type=匹配到的符号
-    //    - 无法识别：返回 false，设置错误信息（包含行号列号）
-    // 3. 在 token 列表末尾添加结束标记 "$"
-    // 4. 返回 true
-    
+bool Lexer::tokenize(const string& source,
+    vector<Token>& outTokens,
+    string& errorMsg) {
     outTokens.clear();
-    // TODO: 实现词法分析逻辑
-    return false; // 占位
-}
 
+    int line = 1;        // 当前行号（从1开始）
+    int column = 1;      // 当前列号（从1开始）
+    size_t pos = 0;      // 当前位置
+    size_t lineStartPos = 0;  // 当前行的开始位置
+
+    while (pos < source.length()) {
+        char currentChar = source[pos];
+        int tokenLine = line;
+        int tokenColumn = column;
+
+        // 跳过空白字符
+        if (isspace(currentChar)) {
+            if (currentChar == '\n') {
+                line++;
+                column = 1;
+                lineStartPos = pos + 1;
+            }
+            else {
+                column++;
+            }
+            pos++;
+            continue;
+        }
+
+        // 处理注释（PL/0使用//注释）
+        if (currentChar == '/' && pos + 1 < source.length() && source[pos + 1] == '/') {
+            // 跳过整行注释
+            while (pos < source.length() && source[pos] != '\n') {
+                pos++;
+                column++;
+            }
+            continue;
+        }
+
+        // 尝试识别标识符或关键字
+        if (hasIdToken && isIdentifierStart(currentChar)) {
+            size_t start = pos;
+
+            // 读取完整的标识符
+            while (pos < source.length() && isIdentifierChar(source[pos])) {
+                pos++;
+                column++;
+            }
+
+            string lexeme = source.substr(start, pos - start);
+            Token token;
+            token.lexeme = lexeme;
+            token.line = tokenLine;
+            token.column = tokenColumn;
+
+            // 检查是否为关键字
+            if (keywordTokens.find(lexeme) != keywordTokens.end()) {
+                token.type = lexeme;  // 关键字类型就是它本身
+            }
+            else {
+                token.type = "id";
+            }
+
+            outTokens.push_back(token);
+            continue;
+        }
+
+        // 尝试识别数字
+        if (hasNumToken && isdigit(currentChar)) {
+            size_t start = pos;
+
+            // 读取完整的数字序列
+            while (pos < source.length() && isdigit(source[pos])) {
+                pos++;
+                column++;
+            }
+
+            Token token;
+            token.type = "num";
+            token.lexeme = source.substr(start, pos - start);
+            token.line = tokenLine;
+            token.column = tokenColumn;
+
+            outTokens.push_back(token);
+            continue;
+        }
+
+        // 尝试识别运算符或分隔符（最长匹配）
+        bool symbolMatched = false;
+        string matchedSymbol;
+
+        // 从最长可能开始尝试匹配（最长匹配原则）
+        for (size_t len = min((size_t)3, source.length() - pos); len >= 1; len--) {
+            string candidate = source.substr(pos, len);
+            if (symbolTokens.find(candidate) != symbolTokens.end()) {
+                matchedSymbol = candidate;
+                symbolMatched = true;
+                break;
+            }
+        }
+
+        if (symbolMatched) {
+            Token token;
+            token.type = matchedSymbol;
+            token.lexeme = matchedSymbol;
+            token.line = tokenLine;
+            token.column = tokenColumn;
+
+            outTokens.push_back(token);
+            pos += matchedSymbol.length();
+            column += matchedSymbol.length();
+            continue;
+        }
+
+        // 无法识别的字符
+        ostringstream errorStream;
+        errorStream << "第" << line << "行，第" << column << "列: "
+            << "无法识别的字符 '" << currentChar << "'";
+        errorMsg = errorStream.str();
+        return false;
+    }
+
+    // 添加结束标记 "$"
+    Token eofToken;
+    eofToken.type = "$";
+    eofToken.lexeme = "$";
+    eofToken.line = line;
+    eofToken.column = column;
+    outTokens.push_back(eofToken);
+
+    return true;
+}

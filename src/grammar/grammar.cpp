@@ -1,90 +1,311 @@
-#include "grammar.h"
-
+﻿#include "grammar.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
+#include <cctype>
+
+using namespace std;
 
 // ============================================
-// TODO: 成员1 实现以下函数
+// 成员1 实现以下函数
 // ============================================
 
-std::string trim(const std::string &s) {
-    // TODO: 实现字符串首尾空白字符的去除
-    // 提示：可以使用 std::isspace 判断空白字符
-    return s; // 占位，需要替换为实际实现
+string trim(const string& s) {
+    // 去除字符串首尾的空白字符
+    if (s.empty()) return s;
+
+    size_t start = 0;
+    size_t end = s.length() - 1;
+
+    // 找到第一个非空白字符
+    while (start <= end && isspace(static_cast<unsigned char>(s[start]))) {
+        start++;
+    }
+
+    // 找到最后一个非空白字符
+    while (end >= start && isspace(static_cast<unsigned char>(s[end]))) {
+        end--;
+    }
+
+    // 如果整个字符串都是空白
+    if (start > end) {
+        return "";
+    }
+
+    return s.substr(start, end - start + 1);
 }
 
-std::vector<std::string> splitSymbols(const std::string &rhs) {
-    // TODO: 实现产生式右部的符号拆分
-    // 要求：
-    // 1. 支持带引号的终结符，如 "if", "+", ":=" 等
-    // 2. 按空格拆分非引号内的符号
-    // 3. 返回符号列表
-    // 提示：需要处理引号内的内容作为一个整体
-    return {}; // 占位，需要替换为实际实现
+vector<string> splitSymbols(const string& rhs) {
+    vector<string> symbols;
+    string current;
+    bool inQuotes = false;
+
+    for (size_t i = 0; i < rhs.length(); i++) {
+        char c = rhs[i];
+
+        if (c == '"') {
+            if (inQuotes) {
+                // 结束引号
+                if (!current.empty()) {
+                    symbols.push_back(current);
+                    current.clear();
+                }
+                inQuotes = false;
+            }
+            else {
+                // 开始引号
+                if (!current.empty()) {
+                    string trimmed = trim(current);
+                    if (!trimmed.empty()) {
+                        symbols.push_back(trimmed);
+                    }
+                    current.clear();
+                }
+                inQuotes = true;
+            }
+        }
+        else if (isspace(c) && !inQuotes) {
+            // 空白字符分隔符号（不在引号内时）
+            if (!current.empty()) {
+                string trimmed = trim(current);
+                if (!trimmed.empty()) {
+                    symbols.push_back(trimmed);
+                }
+                current.clear();
+            }
+        }
+        else {
+            // 普通字符
+            current += c;
+        }
+    }
+
+    // 处理最后一个符号
+    if (!current.empty()) {
+        string trimmed = trim(current);
+        if (!trimmed.empty()) {
+            symbols.push_back(trimmed);
+        }
+    }
+
+    return symbols;
 }
 
-bool Grammar::loadFromFile(const std::string &path, std::string &errorMsg) {
-    // TODO: 实现文法文件加载
-    // 要求：
-    // 1. 读取文件，解析 %Start 指令确定开始符号
-    // 2. 解析产生式（格式：A -> B C | D，支持 | 分隔多个候选式）
-    // 3. 识别非终结符（产生式左部）和终结符（不在非终结符集合中的符号）
-    // 4. 调用 computeFirstSets(), computeFollowSets(), buildLL1ParseTable()
-    // 5. 错误处理：文件不存在、格式错误等
-    // 
-    // 文法文件格式示例：
-    // %Start Expr
-    // Expr -> Term ExprTail
-    // ExprTail -> "+" Term ExprTail | epsilon
-    // Term -> Factor TermTail
-    // ...
-    
-    return false; // 占位，需要替换为实际实现
+bool Grammar::loadFromFile(const string& path, string& errorMsg) {
+    // 清空现有数据
+    nonterminals.clear();
+    terminals.clear();
+    productions.clear();
+    startSymbol.clear();
+    first.clear();
+    follow.clear();
+    parseTable.clear();
+
+    ifstream file(path);
+    if (!file.is_open()) {
+        errorMsg = "无法打开文件: " + path;
+        return false;
+    }
+
+    string line;
+    int lineNum = 0;
+
+    while (getline(file, line)) {
+        lineNum++;
+        line = trim(line);
+
+        // 跳过空行和注释
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        // 处理起始符号定义
+        if (line.find("%Start") == 0) {
+            size_t startPos = line.find(' ');
+            if (startPos == string::npos) {
+                errorMsg = "第" + to_string(lineNum) + "行: %Start 指令格式错误";
+                return false;
+            }
+
+            startSymbol = trim(line.substr(startPos + 1));
+            // 移除可能的分号
+            if (!startSymbol.empty() && startSymbol.back() == ';') {
+                startSymbol.pop_back();
+                startSymbol = trim(startSymbol);
+            }
+
+            if (startSymbol.empty()) {
+                errorMsg = "第" + to_string(lineNum) + "行: 起始符号不能为空";
+                return false;
+            }
+            continue;
+        }
+
+        // 处理产生式
+        size_t arrowPos = line.find("->");
+        if (arrowPos == string::npos) {
+            // 不是产生式，可能是其他指令或格式错误
+            continue;
+        }
+
+        // 提取左部
+        string lhs = trim(line.substr(0, arrowPos));
+        if (lhs.empty()) {
+            errorMsg = "第" + to_string(lineNum) + "行: 产生式左部为空";
+            return false;
+        }
+
+        // 添加到非终结符集合
+        nonterminals.insert(lhs);
+
+        // 提取右部
+        string rhsStr = trim(line.substr(arrowPos + 2));
+
+        // 处理多个候选式（用 | 分隔）
+        vector<string> alternatives;
+        size_t start = 0;
+        size_t pipePos;
+
+        while ((pipePos = rhsStr.find('|', start)) != string::npos) {
+            string alt = trim(rhsStr.substr(start, pipePos - start));
+            if (!alt.empty()) {
+                alternatives.push_back(alt);
+            }
+            start = pipePos + 1;
+        }
+
+        // 添加最后一个候选式
+        string lastAlt = trim(rhsStr.substr(start));
+        if (!lastAlt.empty()) {
+            alternatives.push_back(lastAlt);
+        }
+
+        // 如果没有候选式，添加epsilon产生式
+        if (alternatives.empty()) {
+            Production prod;
+            prod.lhs = lhs;
+            prod.rhs = { EPSILON };
+            productions.push_back(prod);
+        }
+        else {
+            // 为每个候选式创建产生式
+            for (const auto& alt : alternatives) {
+                Production prod;
+                prod.lhs = lhs;
+                prod.rhs = splitSymbols(alt);
+
+                // 处理epsilon
+                if (prod.rhs.size() == 1 && trim(prod.rhs[0]) == "epsilon") {
+                    prod.rhs = { EPSILON };
+                }
+
+                productions.push_back(prod);
+
+                // 识别符号类型
+                for (const auto& symbol : prod.rhs) {
+                    if (symbol == EPSILON) {
+                        continue;  // epsilon是特殊符号
+                    }
+
+                    // 检查是否为带引号的终结符
+                    if (symbol.length() >= 2 && symbol[0] == '"' && symbol.back() == '"') {
+                        string term = symbol.substr(1, symbol.length() - 2);
+                        terminals.insert(term);
+                    }
+                    // 检查是否为非终结符（假设非终结符以大写字母开头）
+                    else if (!symbol.empty() && isupper(symbol[0])) {
+                        // 后续可能需要添加到nonterminals，但这里先不添加
+                        // 因为可能在其他产生式左部定义
+                    }
+                    else {
+                        // 其他符号视为终结符
+                        terminals.insert(symbol);
+                    }
+                }
+            }
+        }
+    }
+
+    file.close();
+
+    // 如果没有显式指定起始符号，使用第一个产生式的左部
+    if (startSymbol.empty() && !productions.empty()) {
+        startSymbol = productions[0].lhs;
+    }
+
+    // 验证文法
+    if (nonterminals.empty()) {
+        errorMsg = "文法中没有定义非终结符";
+        return false;
+    }
+
+    if (startSymbol.empty()) {
+        errorMsg = "未指定起始符号";
+        return false;
+    }
+
+    if (nonterminals.find(startSymbol) == nonterminals.end()) {
+        errorMsg = "起始符号 '" + startSymbol + "' 不是非终结符";
+        return false;
+    }
+
+    // 确保非终结符集合包含所有出现在产生式左部的符号
+    // 和所有出现在产生式右部的大写字母开头的符号
+    for (const auto& prod : productions) {
+        for (const auto& symbol : prod.rhs) {
+            if (symbol != EPSILON && !symbol.empty() && isupper(symbol[0])) {
+                // 大写字母开头的符号视为非终结符
+                nonterminals.insert(symbol);
+            }
+        }
+    }
+
+    // 从终结符集合中移除非终结符
+    for (const auto& nt : nonterminals) {
+        terminals.erase(nt);
+    }
+
+    // 添加特殊符号到终结符集合
+    terminals.insert(END_MARKER);
+
+    // 输出文法信息（调试用）
+    /*
+    cout << "文法加载成功：" << endl;
+    cout << "  起始符号: " << startSymbol << endl;
+    cout << "  非终结符 (" << nonterminals.size() << "个): ";
+    for (const auto& nt : nonterminals) cout << nt << " ";
+    cout << endl;
+    cout << "  终结符 (" << terminals.size() << "个): ";
+    for (const auto& t : terminals) cout << t << " ";
+    cout << endl;
+    cout << "  产生式 (" << productions.size() << "个):" << endl;
+    for (size_t i = 0; i < productions.size(); i++) {
+        cout << "    [" << i << "] " << productions[i].lhs << " -> ";
+        if (productions[i].rhs.size() == 1 && productions[i].rhs[0] == EPSILON) {
+            cout << EPSILON;
+        } else {
+            for (const auto& sym : productions[i].rhs) {
+                cout << sym << " ";
+            }
+        }
+        cout << endl;
+    }
+    */
+
+    // 调用成员2的函数（如果已实现）
+    //try {
+    //    computeFirstSets();
+    //    computeFollowSets();
+    //    if (!buildLL1ParseTable(errorMsg)) {
+    //        // 如果不是LL(1)文法，可能只是警告而不是错误
+    //        // 取决于具体需求
+    //        cout << "警告: " << errorMsg << endl;
+    //    }
+    //}
+    //catch (...) {
+    //    // 成员2的函数可能还没实现，继续执行
+    //}
+
+    return true;
 }
-
-// ============================================
-// TODO: 成员2 实现以下函数
-// ============================================
-
-void Grammar::computeFirstSets() {
-    // TODO: 实现 FIRST 集合计算
-    // 算法：
-    // 1. 初始化：对每个终结符 t，FIRST(t) = {t}
-    // 2. 对每个非终结符，初始化 FIRST(A) = {}
-    // 3. 迭代直到不再变化：
-    //    - 对产生式 A -> X1 X2 ... Xn：
-    //      * 将 FIRST(X1) - {epsilon} 加入 FIRST(A)
-    //      * 如果 X1 可推导出 epsilon，继续处理 X2，以此类推
-    //      * 如果所有 Xi 都可推导出 epsilon，将 epsilon 加入 FIRST(A)
-    // 4. 对 epsilon 产生式 A -> epsilon，将 epsilon 加入 FIRST(A)
-}
-
-void Grammar::computeFollowSets() {
-    // TODO: 实现 FOLLOW 集合计算
-    // 算法：
-    // 1. 初始化：FOLLOW(开始符号) = {$}
-    // 2. 迭代直到不再变化：
-    //    - 对产生式 A -> αBβ：
-    //      * 将 FIRST(β) - {epsilon} 加入 FOLLOW(B)
-    //      * 如果 beta 可推导出 epsilon，将 FOLLOW(A) 加入 FOLLOW(B)
-    //    - 对产生式 A -> αB（B 在末尾）：
-    //      * 将 FOLLOW(A) 加入 FOLLOW(B)
-}
-
-bool Grammar::buildLL1ParseTable(std::string &errorMsg) {
-    // TODO: 实现 LL(1) 预测分析表构造
-    // 算法：
-    // 1. 对每个产生式 A -> α：
-    //    - 计算 FIRST(α)
-    //    - 对每个 a ∈ FIRST(α) - {epsilon}，将 A -> α 加入 M[A, a]
-    //    - 如果 epsilon ∈ FIRST(α)，对每个 b ∈ FOLLOW(A)，将 A -> α 加入 M[A, b]
-    // 2. 检查冲突：如果 M[A, a] 有多个产生式，报错（非 LL(1) 文法）
-    // 3. 返回是否成功
-    return false; // 占位，需要替换为实际实现
-}
-
-void Grammar::debugPrint() const {
-    // 可选：实现调试输出，打印文法、FIRST/FOLLOW 集合、分析表等
-}
-

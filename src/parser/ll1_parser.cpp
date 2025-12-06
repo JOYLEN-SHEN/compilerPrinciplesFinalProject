@@ -1,4 +1,4 @@
-#include "ll1_parser.h"
+﻿#include "ll1_parser.h"
 
 #include <stack>
 #include <sstream>
@@ -9,7 +9,7 @@
 
 bool LL1Parser::parse(const std::vector<Token> &tokens,
                       std::vector<int> &usedProductions,
-                      std::string &errorMsg) {
+                      std::string &errorMsg) const{
     // TODO: 实现 LL(1) 表驱动语法分析
     // 算法：
     // 1. 初始化栈：压入 $ 和开始符号
