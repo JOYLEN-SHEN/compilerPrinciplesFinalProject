@@ -46,7 +46,7 @@ compilerPrinciplesFinalProject/
 
 ## 三人分工
 
-### 成员1：词法分析器 + 文法加载基础
+### 成员1：词法分析器 + 文法加载基础 余伟强
 
 **负责模块：**
 - `src/lexer/lexer.h` 和 `src/lexer/lexer.cpp`（完整实现）
@@ -77,7 +77,7 @@ compilerPrinciplesFinalProject/
 
 ---
 
-### 成员2：语法分析器 + FIRST/FOLLOW 集合计算
+### 成员2：语法分析器 + FIRST/FOLLOW 集合计算 沈仲尧
 
 **负责模块：**
 - `src/parser/ll1_parser.h` 和 `src/parser/ll1_parser.cpp`（完整实现）
@@ -119,7 +119,7 @@ compilerPrinciplesFinalProject/
 
 ---
 
-### 成员3：PL/0 中间代码生成
+### 成员3：PL/0 中间代码生成 王思源
 
 **负责模块：**
 - `src/pl0/pl0_icg.h` 和 `src/pl0/pl0_icg.cpp`（完整实现）
