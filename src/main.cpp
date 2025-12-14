@@ -59,6 +59,19 @@ std::string dumpTacToFile(const std::string &sourceFile,
     return outPath.string();
 }
 
+void printTokens(const std::vector<Token>& tokens) {
+    std::cout << "Token 流如下：\n";
+    for (size_t i = 0; i < tokens.size(); ++i) {
+        const auto& t = tokens[i];
+        std::cout << i << ": "
+            << "type=" << t.type
+            << ", value=\"" << t.lexeme << "\""
+            << ", line=" << t.line
+            << ", col=" << t.column
+            << "\n";
+    }
+}
+
 void runPart1(const std::string &grammarFile, const std::string &sourceFile) {
     std::cout << "=== 第 1 部分：自动生成 词法分析器 + 语法分析器 ===\n";
     std::cout << "文法文件: " << grammarFile << "\n";
@@ -80,6 +93,7 @@ void runPart1(const std::string &grammarFile, const std::string &sourceFile) {
         std::cerr << "词法分析出错： " << error << "\n";
         return;
     }
+    printTokens(tokens);
 
     LL1Parser parser(g);
     std::vector<int> usedProductions;
@@ -102,26 +116,86 @@ void runPart1(const std::string &grammarFile, const std::string &sourceFile) {
     }
 }
 
-void runPart2(const std::string &sourceFile) {
-    std::cout << "=== 第 2 部分：PL/0 子集的三地址码生成 ===\n";
-    std::cout << "源程序  : " << sourceFile << "\n\n";
+//void runPart2(const std::string &sourceFile) {
+//    std::cout << "=== 第 2 部分：PL/0 子集的三地址码生成 ===\n";
+//    std::cout << "源程序  : " << sourceFile << "\n\n";
+//
+//    std::string source = readFileToString(sourceFile);
+//    PL0ICG icg;
+//    std::vector<std::string> tac;
+//    std::string error;
+//    if (!icg.generate(source, tac, error)) {
+//        std::cerr << "中间代码生成失败： " << error << "\n";
+//        return;
+//    }
+//
+//    std::cout << "生成的三地址中间代码如下：\n";
+//    for (const auto &line : tac) {
+//        std::cout << line << "\n";
+//    }
+//    std::string outPath = dumpTacToFile(sourceFile, tac);
+//    std::cout << "\n已将三地址码保存到文件: " << outPath << "\n";
+//}
 
-    std::string source = readFileToString(sourceFile);
-    PL0ICG icg;
-    std::vector<std::string> tac;
+
+
+void runPart2(const std::string& grammarFile, const std::string& sourceFile) {
+    std::cout << "=== 第 2 部分：PL/0 子集的三地址码生成 ===\n";
+
+    // 1-4 步骤保持不变（加载文法、读取源码、词法分析）
+    Grammar g;
     std::string error;
-    if (!icg.generate(source, tac, error)) {
-        std::cerr << "中间代码生成失败： " << error << "\n";
+    if (!g.loadFromFile(grammarFile, error)) {
+        std::cerr << "加载文法失败： " << error << "\n";
         return;
     }
 
-    std::cout << "生成的三地址中间代码如下：\n";
-    for (const auto &line : tac) {
-        std::cout << line << "\n";
+    std::string source = readFileToString(sourceFile);
+    Lexer lexer;
+    lexer.configureFromTerminals(g.terminals);
+
+    std::vector<Token> tokens;
+    if (!lexer.tokenize(source, tokens, error)) {
+        std::cerr << "词法分析出错： " << error << "\n";
+        return;
     }
-    std::string outPath = dumpTacToFile(sourceFile, tac);
-    std::cout << "\n已将三地址码保存到文件: " << outPath << "\n";
+
+    // --- 修改点：开始集成你的 ICG 模块 ---
+
+    // 5. 创建你的生成器实例
+    // 注意：假设你的类名为 PL0ICG，且构造函数接收 Token 向量
+    // ... 词法分析得到 tokens 后 ...
+    PL0ICG icg(tokens);
+    std::vector<std::string> tac;
+
+    try {
+        // 6. 执行递归下降分析并生成三地址码
+        // generate 方法内部应调用 program() 根规则
+        if (!icg.generate(tac, error)) {
+            std::cerr << "中间代码生成失败： " << error << "\n";
+            return;
+        }
+
+        // 7. 输出结果到控制台
+        std::cout << "生成的三地址中间代码如下：\n";
+        for (const auto& line : tac) {
+            std::cout << line << "\n";
+        }
+
+        // 8. 调用已有的工具函数保存到文件
+        std::string outPath = dumpTacToFile(sourceFile, tac);
+        std::cout << "\n已将三地址码保存到文件: " << outPath << "\n";
+
+    }
+    catch (const std::exception& e) {
+        // 捕获递归下降中的语法错误（例如 expect 失败抛出的异常）
+        std::cerr << "语义/语法错误: " << e.what() << "\n";
+    }
+
+   
 }
+
+
 
 int main(int argc, char **argv) {
     setupConsole();
@@ -140,12 +214,13 @@ int main(int argc, char **argv) {
             return 1;
         }
         runPart1(argv[2], argv[3]);
-    } else if (mode == "part2") {
-        if (argc < 3) {
-            std::cerr << "part2 模式需要提供 <source-file>\n";
+    }
+    else if (mode == "part2") {
+        if (argc < 4) {
+            std::cerr << "part2 模式需要提供 <grammar-file> 和 <source-file>\n";
             return 1;
         }
-        runPart2(argv[2]);
+        runPart2(argv[2], argv[3]);
     } else {
         std::cerr << "未知的模式: " << mode << "（应为 part1 或 part2）\n";
         return 1;
