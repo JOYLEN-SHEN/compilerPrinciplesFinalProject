@@ -1,0 +1,48 @@
+const MAX = 20, PI = 3, EULER = 2, OFFSET = 5;
+var sum, product, average, counter, temp, flag;
+var x, y, z, result;
+
+begin
+  sum := 0;
+  product := 1;
+  counter := 0;
+  flag := 1;
+
+  while counter < MAX do
+    begin
+      temp := counter + OFFSET;
+      x := temp * 2;
+      y := temp + PI;
+
+      if x > 10 then
+        begin
+          sum := sum + x;
+          if flag = 1 then
+            product := product * y
+          else
+            product := product + y
+        end
+      else
+        sum := sum + y;
+
+      flag := 1 - flag;
+      counter := counter + 1
+    end;
+
+  average := sum / MAX;
+  result := average + (product * EULER) - OFFSET;
+
+  x := 0;
+  while x < 5 do
+    begin
+      y := x * 3;
+      z := y + result;
+      if z > 50 then
+        temp := z - 10
+      else
+        temp := z + 5;
+      x := x + 1
+    end;
+
+  result := result + temp
+end.

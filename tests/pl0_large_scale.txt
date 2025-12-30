@@ -1,0 +1,91 @@
+const MAX_SIZE = 100, PI = 314, EULER = 271;
+const LIMIT = 50, STEP = 2, OFFSET = 10;
+
+var sum, product, average, count, temp, flag;
+var arr1, arr2, arr3, arr4, arr5;
+var result1, result2, result3, result4, result5;
+var counter1, counter2, counter3, counter4, counter5;
+
+begin
+  sum := 0;
+  product := 1;
+  count := 0;
+  flag := 0;
+
+  while count < MAX_SIZE do
+    begin
+      temp := count + OFFSET;
+      if temp > LIMIT then
+        begin
+          if flag = 0 then
+            begin
+              sum := sum + temp;
+              flag := 1
+            end
+          else
+            begin
+              product := product * temp;
+              flag := 0
+            end
+        end
+      else
+        begin
+          temp := temp * STEP;
+          sum := sum + temp
+        end;
+      count := count + 1
+    end;
+
+  average := sum / MAX_SIZE;
+  result1 := average + PI;
+  result2 := average - EULER;
+  result3 := average * PI;
+  result4 := average / EULER;
+  result5 := average + (PI * EULER) - OFFSET;
+
+  counter1 := 0;
+  while counter1 < 10 do
+    begin
+      arr1 := counter1 * 2;
+      counter2 := 0;
+      while counter2 < 5 do
+        begin
+          arr2 := arr1 + counter2;
+          counter3 := 0;
+          while counter3 < 3 do
+            begin
+              arr3 := arr2 * counter3;
+              if arr3 > 20 then
+                begin
+                  if arr3 < 50 then
+                    arr4 := arr3 + 5
+                  else
+                    arr4 := arr3 - 10
+                end
+              else
+                arr4 := arr3 * 2;
+              arr5 := arr4 + counter1 + counter2 + counter3;
+              counter3 := counter3 + 1
+            end;
+          counter2 := counter2 + 1
+        end;
+      counter1 := counter1 + 1
+    end;
+
+  temp := (result1 + result2) * (result3 - result4) / result5;
+  if temp > 1000 then
+    begin
+      if temp < 5000 then
+        flag := 1
+      else
+        flag := 2
+    end
+  else
+    flag := 0;
+
+  result1 := result1 + result2 + result3;
+  result2 := result4 * result5 - OFFSET;
+  result3 := (result1 / result2) + PI;
+  result4 := result3 * EULER - STEP;
+  result5 := result4 + result1 - result2 + LIMIT
+end.

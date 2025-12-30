@@ -1,0 +1,58 @@
+%Start program
+
+program -> declarations statements "end"
+
+declarations -> constDecl varDecl funcDecl | epsilon
+
+constDecl -> "const" constList | epsilon
+constList -> constItem constListTail
+constListTail -> "," constItem constListTail | epsilon
+constItem -> id "=" number
+
+varDecl -> "var" varList | epsilon
+varList -> varItem varListTail
+varListTail -> "," varItem varListTail | epsilon
+varItem -> id ":" type
+type -> "int" | "float" | "bool"
+
+funcDecl -> funcDef funcDecl | epsilon
+funcDef -> "function" id "(" paramList ")" ":" type block
+paramList -> param paramTail | epsilon
+param -> id ":" type
+paramTail -> "," param paramTail | epsilon
+
+block -> "{" declarations statements "}"
+
+statements -> statement statements | epsilon
+
+statement -> assignStmt | ifStmt | whileStmt | forStmt | funcCallStmt | returnStmt | block
+
+assignStmt -> id ":=" expression ";"
+
+ifStmt -> "if" "(" expression ")" statement elsePart
+elsePart -> "else" statement | epsilon
+
+whileStmt -> "while" "(" expression ")" statement
+
+forStmt -> "for" "(" assignStmt expression ";" assignStmt ")" statement
+
+funcCallStmt -> id "(" argList ")" ";"
+argList -> expression argTail | epsilon
+argTail -> "," expression argTail | epsilon
+
+returnStmt -> "return" expression ";"
+
+expression -> term exprTail
+exprTail -> addOp term exprTail | epsilon
+addOp -> "+" | "-"
+
+term -> factor termTail
+termTail -> mulOp factor termTail | epsilon
+mulOp -> "*" | "/" | "%"
+
+factor -> id | number | "(" expression ")" | funcCall | "true" | "false"
+
+funcCall -> id "(" argList ")"
+
+number -> digit number | digit
+digit -> "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"

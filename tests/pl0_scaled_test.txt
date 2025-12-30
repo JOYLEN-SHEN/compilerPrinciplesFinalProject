@@ -1,0 +1,14 @@
+const a = 1, b = 2, c = 3;
+var x, y, z, result;
+
+begin
+  x := a + b;
+  y := x * c;
+  z := y - a;
+
+  if z > 5 then
+    result := z + 1;
+
+  x := result * 2;
+  y := x + result
+end.

@@ -1,0 +1,18 @@
+const MAX = 10, PI = 3, OFFSET = 2;
+var sum, count, temp, result;
+
+begin
+  sum := 0;
+  count := 0;
+
+  while count < MAX do
+    count := count + 1;
+
+  temp := count + OFFSET;
+  result := temp * PI;
+
+  if result > 20 then
+    sum := result + 5
+  else
+    sum := result - 2
+end.
