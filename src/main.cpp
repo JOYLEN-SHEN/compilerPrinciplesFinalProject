@@ -116,29 +116,6 @@ void runPart1(const std::string &grammarFile, const std::string &sourceFile) {
     }
 }
 
-//void runPart2(const std::string &sourceFile) {
-//    std::cout << "=== 第 2 部分：PL/0 子集的三地址码生成 ===\n";
-//    std::cout << "源程序  : " << sourceFile << "\n\n";
-//
-//    std::string source = readFileToString(sourceFile);
-//    PL0ICG icg;
-//    std::vector<std::string> tac;
-//    std::string error;
-//    if (!icg.generate(source, tac, error)) {
-//        std::cerr << "中间代码生成失败： " << error << "\n";
-//        return;
-//    }
-//
-//    std::cout << "生成的三地址中间代码如下：\n";
-//    for (const auto &line : tac) {
-//        std::cout << line << "\n";
-//    }
-//    std::string outPath = dumpTacToFile(sourceFile, tac);
-//    std::cout << "\n已将三地址码保存到文件: " << outPath << "\n";
-//}
-
-
-
 void runPart2(const std::string& grammarFile, const std::string& sourceFile) {
     std::cout << "=== 第 2 部分：PL/0 子集的三地址码生成 ===\n";
 
@@ -191,8 +168,6 @@ void runPart2(const std::string& grammarFile, const std::string& sourceFile) {
         // 捕获递归下降中的语法错误（例如 expect 失败抛出的异常）
         std::cerr << "语义/语法错误: " << e.what() << "\n";
     }
-
-   
 }
 
 

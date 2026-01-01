@@ -251,6 +251,9 @@ void PL0ICG::parseStatement() {
     Token t = peek();
     if (t.type == "id") {
         std::string target = next().lexeme;
+        if (symbolTable.find(target) == symbolTable.end()) {
+            throw std::runtime_error("语义错误：变量 '" + target + "' 未定义 (行 " + std::to_string(t.line) + ")");
+        }
         if (symbolTable.count(target) && symbolTable[target].type == "const")
             throw std::runtime_error("不能为常量 " + target + " 赋值");
         expect(":=", "赋值语句缺少 ':='");
