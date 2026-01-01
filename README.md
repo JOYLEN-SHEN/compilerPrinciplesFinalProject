@@ -211,13 +211,13 @@ g++ -std=c++17 -O2 -o compiler_gen src/main.cpp src/grammar/grammar.cpp src/lexe
 **第 2 部分测试（PL/0 三地址码生成）：**
 ```powershell
 .\compiler_gen.exe part2 grammar_files/pl0_grammar.txt tests/pl0_sample1.txt
-.\compiler_gen.exe part2 tests/pl0_sample2.txt
+.\compiler_gen.exe part2 grammar_files/pl0_grammar.txt tests/pl0_sample2.txt
 ```
 
 **错误测试：**
 ```powershell
 .\compiler_gen.exe part1 grammar_files/expr_grammar.txt tests/expr_err_1.txt
-.\compiler_gen.exe part2 tests/pl0_err1.txt
+.\compiler_gen.exe part2 grammar_files/pl0_grammar.txt tests/pl0_err1.txt
 ```
 
 ## 测试验证
