@@ -1,0 +1,33 @@
+const MAX = 10, STEP = 2;
+
+var i, j, sum, temp, flag, result;
+
+begin
+  i := 0;
+  sum := 0;
+  flag := 0;
+
+  while i < MAX do
+    begin
+      temp := i * STEP;
+
+      if odd temp then
+        sum := sum + temp;
+
+      j := 0;
+      while j < temp do
+        begin
+          if j < 5 then
+            sum := sum + j;
+
+          j := j + 1
+        end;
+
+      if sum > 50 then
+        flag := 1;
+
+      i := i + 1
+    end;
+
+  result := (sum + MAX) * STEP / 2
+end.

@@ -46,38 +46,9 @@ compilerPrinciplesFinalProject/
 
 ## 三人分工
 
-### 成员1：词法分析器 + 文法加载基础 余伟强
+### 成员1/组长：语法分析器 + FIRST/FOLLOW 集合计算 沈仲尧
 
-**负责模块：**
-- `src/lexer/lexer.h` 和 `src/lexer/lexer.cpp`（完整实现）
-- `src/grammar/grammar.h` 和 `src/grammar/grammar.cpp` 中的以下函数：
-  - `trim()` - 字符串处理工具函数
-  - `splitSymbols()` - 产生式右部符号拆分
-  - `Grammar::loadFromFile()` - 文法文件加载和解析
-
-**主要任务：**
-1. **词法分析器（Lexer）**
-   - 实现 `configureFromTerminals()`：根据文法中的终结符集合自动配置词法分析器
-   - 实现 `tokenize()`：对源程序进行词法分析，识别标识符、数字、关键字、运算符等
-   - 实现 `createPL0Lexer()`：创建固定的 PL/0 词法分析器
-   - 实现辅助函数：`isIdentifierStart()`, `isIdentifierChar()`
-
-2. **文法加载基础**
-   - 实现 `trim()`：去除字符串首尾空白
-   - 实现 `splitSymbols()`：解析产生式右部，支持带引号的终结符（如 `"if"`, `"+"`）
-   - 实现 `Grammar::loadFromFile()`：从文件读取文法，解析产生式，识别终结符和非终结符
-
-**参考算法：**
-- 词法分析：状态机方法，最长匹配原则
-- 文法文件格式：简化 BNF，支持 `%Start` 指令和 `->` 产生式
-
-**测试用例：**
-- 使用 `grammar_files/expr_grammar.txt` 和 `tests/expr_ok_1.txt` 测试词法分析
-- 使用 `grammar_files/pl0_grammar.txt` 测试 PL/0 词法分析
-
----
-
-### 成员2：语法分析器 + FIRST/FOLLOW 集合计算 沈仲尧
+负责搭建项目框架，设计各Class，并分配任务
 
 **负责模块：**
 - `src/parser/ll1_parser.h` 和 `src/parser/ll1_parser.cpp`（完整实现）
@@ -116,6 +87,37 @@ compilerPrinciplesFinalProject/
 - 使用 `grammar_files/expr_grammar.txt` 和 `tests/expr_ok_1.txt` 测试语法分析
 - 使用 `grammar_files/if_grammar.txt` 和 `tests/if_ok_1.txt` 测试不同文法
 - 使用错误测试用例验证错误处理
+
+---
+
+### 成员2：词法分析器 + 文法加载基础 余伟强
+
+**负责模块：**
+- `src/lexer/lexer.h` 和 `src/lexer/lexer.cpp`（完整实现）
+- `src/grammar/grammar.h` 和 `src/grammar/grammar.cpp` 中的以下函数：
+  - `trim()` - 字符串处理工具函数
+  - `splitSymbols()` - 产生式右部符号拆分
+  - `Grammar::loadFromFile()` - 文法文件加载和解析
+
+**主要任务：**
+1. **词法分析器（Lexer）**
+   - 实现 `configureFromTerminals()`：根据文法中的终结符集合自动配置词法分析器
+   - 实现 `tokenize()`：对源程序进行词法分析，识别标识符、数字、关键字、运算符等
+   - 实现 `createPL0Lexer()`：创建固定的 PL/0 词法分析器
+   - 实现辅助函数：`isIdentifierStart()`, `isIdentifierChar()`
+
+2. **文法加载基础**
+   - 实现 `trim()`：去除字符串首尾空白
+   - 实现 `splitSymbols()`：解析产生式右部，支持带引号的终结符（如 `"if"`, `"+"`）
+   - 实现 `Grammar::loadFromFile()`：从文件读取文法，解析产生式，识别终结符和非终结符
+
+**参考算法：**
+- 词法分析：状态机方法，最长匹配原则
+- 文法文件格式：简化 BNF，支持 `%Start` 指令和 `->` 产生式
+
+**测试用例：**
+- 使用 `grammar_files/expr_grammar.txt` 和 `tests/expr_ok_1.txt` 测试词法分析
+- 使用 `grammar_files/pl0_grammar.txt` 测试 PL/0 词法分析
 
 ---
 
@@ -216,7 +218,106 @@ g++ -std=c++17 -O2 -o compiler_gen src/main.cpp src/grammar/grammar.cpp src/lexe
 **错误测试：**
 ```powershell
 .\compiler_gen.exe part1 grammar_files/expr_grammar.txt tests/expr_err_1.txt
-.\compiler_gen.exe part2 tests/pl0_err1.txt
+.\compiler_gen.exe part2 grammar_files/pl0_grammar.txt tests/pl0_err1.txt
+```
+
+## 测试验证
+
+### 大规模测试用例
+
+为了验证编译器-编译器系统在大规模输入下的稳定性和性能，我们提供了以下测试用例：
+
+#### 1. PL/0大规模程序测试
+
+**文件：** `tests/pl0_scaled_test.txt`
+```pl0
+const a = 1, b = 2, c = 3;
+var x, y, z, result;
+
+begin
+  x := a + b;
+  y := x * c;
+  z := y - a;
+
+  if z > 5 then
+    result := z + 1;
+
+  x := result * 2;
+  y := x + result
+end.
+```
+
+**测试特点：**
+- 3个常量声明，4个变量声明
+- 6个赋值语句，1个条件语句
+- 复杂的算术表达式和混合运算
+- 生成约15-20条三地址码指令
+
+**运行命令：**
+```bash
+.\compiler_gen.exe part2 grammar_files/pl0_grammar.txt tests/pl0_scaled_test.txt
+```
+
+#### 2. 复杂文法测试
+
+**文法文件：** `grammar_files/complex_grammar.txt`
+- 支持函数定义和调用
+- 多种数据类型（int, float, bool）
+- 复杂控制流（if-else, while, for）
+- 类型系统和参数传递
+
+**测试程序：** `tests/complex_program.txt`
+- 函数定义和嵌套调用
+- 复杂控制结构
+- 大量表达式运算
+
+**运行命令：**
+```bash
+.\compiler_gen.exe part1 grammar_files/complex_grammar.txt tests/complex_program.txt
+```
+
+**注意：** 该文法存在LL(1)冲突，系统会正确检测并报告冲突，用于验证冲突检测功能。
+
+### 测试覆盖范围
+
+#### 语法特性覆盖
+- ✅ 常量声明（单个和多个）
+- ✅ 变量声明（单个和多个）
+- ✅ 赋值语句和算术表达式
+- ✅ 关系表达式和条件语句
+- ✅ 循环语句和复合语句
+
+#### 边界条件测试
+- 大整数运算处理
+- 复杂表达式嵌套
+- 变量作用域验证
+- 错误恢复能力测试
+
+### 测试验证结果
+
+**成功标准：**
+1. **语法正确性**：所有测试用例正确解析，无语法错误
+2. **代码生成**：生成正确的三地址码，逻辑正确
+3. **错误处理**：对非法输入给出适当错误信息
+
+**大规模测试结果示例：**
+```
+生成的三地址中间代码如下：
+t1 = 1 + 2
+x = t1
+t2 = x * 3
+y = t2
+t3 = y - 1
+z = t3
+t4 = z > 5
+ifFalse t4 goto L1
+t5 = z + 1
+result = t5
+L1:
+t6 = result * 2
+x = t6
+t7 = x + result
+y = t7
 ```
 
 ## 开发指导
