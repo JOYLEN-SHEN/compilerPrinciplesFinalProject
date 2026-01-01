@@ -46,38 +46,9 @@ compilerPrinciplesFinalProject/
 
 ## 三人分工
 
-### 成员1：词法分析器 + 文法加载基础 余伟强
+### 成员1/组长：语法分析器 + FIRST/FOLLOW 集合计算 沈仲尧
 
-**负责模块：**
-- `src/lexer/lexer.h` 和 `src/lexer/lexer.cpp`（完整实现）
-- `src/grammar/grammar.h` 和 `src/grammar/grammar.cpp` 中的以下函数：
-  - `trim()` - 字符串处理工具函数
-  - `splitSymbols()` - 产生式右部符号拆分
-  - `Grammar::loadFromFile()` - 文法文件加载和解析
-
-**主要任务：**
-1. **词法分析器（Lexer）**
-   - 实现 `configureFromTerminals()`：根据文法中的终结符集合自动配置词法分析器
-   - 实现 `tokenize()`：对源程序进行词法分析，识别标识符、数字、关键字、运算符等
-   - 实现 `createPL0Lexer()`：创建固定的 PL/0 词法分析器
-   - 实现辅助函数：`isIdentifierStart()`, `isIdentifierChar()`
-
-2. **文法加载基础**
-   - 实现 `trim()`：去除字符串首尾空白
-   - 实现 `splitSymbols()`：解析产生式右部，支持带引号的终结符（如 `"if"`, `"+"`）
-   - 实现 `Grammar::loadFromFile()`：从文件读取文法，解析产生式，识别终结符和非终结符
-
-**参考算法：**
-- 词法分析：状态机方法，最长匹配原则
-- 文法文件格式：简化 BNF，支持 `%Start` 指令和 `->` 产生式
-
-**测试用例：**
-- 使用 `grammar_files/expr_grammar.txt` 和 `tests/expr_ok_1.txt` 测试词法分析
-- 使用 `grammar_files/pl0_grammar.txt` 测试 PL/0 词法分析
-
----
-
-### 成员2：语法分析器 + FIRST/FOLLOW 集合计算 沈仲尧
+负责搭建项目框架，设计各Class，并分配任务
 
 **负责模块：**
 - `src/parser/ll1_parser.h` 和 `src/parser/ll1_parser.cpp`（完整实现）
@@ -116,6 +87,37 @@ compilerPrinciplesFinalProject/
 - 使用 `grammar_files/expr_grammar.txt` 和 `tests/expr_ok_1.txt` 测试语法分析
 - 使用 `grammar_files/if_grammar.txt` 和 `tests/if_ok_1.txt` 测试不同文法
 - 使用错误测试用例验证错误处理
+
+---
+
+### 成员2：词法分析器 + 文法加载基础 余伟强
+
+**负责模块：**
+- `src/lexer/lexer.h` 和 `src/lexer/lexer.cpp`（完整实现）
+- `src/grammar/grammar.h` 和 `src/grammar/grammar.cpp` 中的以下函数：
+  - `trim()` - 字符串处理工具函数
+  - `splitSymbols()` - 产生式右部符号拆分
+  - `Grammar::loadFromFile()` - 文法文件加载和解析
+
+**主要任务：**
+1. **词法分析器（Lexer）**
+   - 实现 `configureFromTerminals()`：根据文法中的终结符集合自动配置词法分析器
+   - 实现 `tokenize()`：对源程序进行词法分析，识别标识符、数字、关键字、运算符等
+   - 实现 `createPL0Lexer()`：创建固定的 PL/0 词法分析器
+   - 实现辅助函数：`isIdentifierStart()`, `isIdentifierChar()`
+
+2. **文法加载基础**
+   - 实现 `trim()`：去除字符串首尾空白
+   - 实现 `splitSymbols()`：解析产生式右部，支持带引号的终结符（如 `"if"`, `"+"`）
+   - 实现 `Grammar::loadFromFile()`：从文件读取文法，解析产生式，识别终结符和非终结符
+
+**参考算法：**
+- 词法分析：状态机方法，最长匹配原则
+- 文法文件格式：简化 BNF，支持 `%Start` 指令和 `->` 产生式
+
+**测试用例：**
+- 使用 `grammar_files/expr_grammar.txt` 和 `tests/expr_ok_1.txt` 测试词法分析
+- 使用 `grammar_files/pl0_grammar.txt` 测试 PL/0 词法分析
 
 ---
 
